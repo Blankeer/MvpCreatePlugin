@@ -3,7 +3,6 @@ package $packagename;
 import android.os.Bundle;
 import android.view.View;
 
-import $basepackagename.MvpBaseFragment;
 
 /**
  * @author $author
@@ -11,7 +10,8 @@ import $basepackagename.MvpBaseFragment;
  * @Description: $description
  * @date $date
  */
-public class $nameFragment extends MvpBaseFragment implements $nameContract.View{
+public class $nameFragment extends BaseFragment
+        implements $nameContract.View{
 
     private $nameContract.Presenter mPresenter;
 
@@ -20,30 +20,25 @@ public class $nameFragment extends MvpBaseFragment implements $nameContract.View
     }
 
     @Override
-    protected void initView(View view, Bundle savedInstanceState) {
+    public int getLayout() {
+        return ;
+    }
+
+    @Override
+    public void initView(View view, Bundle savedInstanceState) {
 
     }
 
     @Override
-    protected int getLayoutId() {
-        return 0;
+    public void initData(View view, Bundle savedInstanceState) {
+
     }
 
     @Override
-    public void setPresenter($nameContract.Presenter presenter) {
-        mPresenter = presenter;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mPresenter.start();
-    }
-
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mPresenter = null;
+    public $nameContract.Presenter getPresenter() {
+        if (mPresenter == null) {
+            mPresenter = new $namePresenter();
+        }
+        return mPresenter;
     }
 }

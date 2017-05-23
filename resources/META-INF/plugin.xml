@@ -1,6 +1,6 @@
 <idea-plugin version="2">
-  <id>com.zx.mvphelper.unique.plugin.id</id>
-  <name>MvpCreatePlugin</name>
+  <id>com.zx.mvphelper.unique.plugin.id1</id>
+  <name>MvpCreatePlugin-blanke</name>
   <version>1.0</version>
   <vendor email="zhangxunzz@126.com" url="https://github.com/xunzzz">xun</vendor>
 
@@ -28,7 +28,7 @@
 
   <actions>
     <!-- Add your actions here -->
-    <action id="MvpPlugin.ID" class="MvpCreateAction" text="MvpHelper" description="生成mvp框架代码">
+    <action id="MvpPlugin.ID" class="Template.MvpCreateAction" text="MvpHelper" description="生成mvp框架代码">
       <add-to-group group-id="CodeMenu" anchor="first"/>
       <keyboard-shortcut keymap="$default" first-keystroke="alt T"/>
     </action>

@@ -1,8 +1,11 @@
+package Template;
+
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -24,23 +27,31 @@ public class MvpCreateAction extends AnAction {
     private String packageName = "";
     private String mAuthor;//作者
     private String mModuleName;//模块名称
+    private boolean mIsActivity;//是否是 act,or fragment
+    private VirtualFile virtualFile;
+    private String currentDirPath;//当前所在目录路径
 
-
-
-    private enum  CodeType {
+    private enum CodeType {
         Activity, Fragment, Contract, Presenter, BaseView, BasePresenter, MvpBaseActivity, MvpBaseFragment
     }
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        project = e.getData(PlatformDataKeys.PROJECT);
+        project = e.getProject();
+        virtualFile = DataKeys.VIRTUAL_FILE.getData(e.getDataContext());
+        currentDirPath = virtualFile.getPath();
         packageName = getPackageName();
+        if (currentDirPath == null || currentDirPath.length() == 0) {
+            Messages.showErrorDialog(project, "请在文件浏览器选择某个目录,再启动插件", "发送了一个不可描述的错误~");
+            return;
+        }
         init();
         refreshProject(e);
     }
 
     /**
      * 刷新项目
+     *
      * @param e
      */
     private void refreshProject(AnActionEvent e) {
@@ -50,14 +61,23 @@ public class MvpCreateAction extends AnAction {
     /**
      * 初始化Dialog
      */
-    private void init(){
+    private void init() {
         MyDialog myDialog = new MyDialog(new MyDialog.DialogCallBack() {
             @Override
-            public void ok(String author, String moduleName) {
+            public void ok(String author, String moduleName, boolean isActivity) {
                 mAuthor = author;
                 mModuleName = moduleName;
+                if (moduleName == null || moduleName.length() == 0) {
+                    Messages.showErrorDialog(project, "卧槽,moduleName 不能为空!为空了还搞毛!", "发送了一个不可描述的错误~");
+                }
+                if (mModuleName.length() == 1) {
+                    mModuleName = mModuleName.toUpperCase();
+                } else {
+                    mModuleName = mModuleName.substring(0, 1).toUpperCase()
+                            + mModuleName.substring(1).toLowerCase();
+                }
+                mIsActivity = isActivity;
                 createClassFiles();
-                Messages.showInfoMessage(project,"create mvp code success","title");
             }
         });
         myDialog.setVisible(true);
@@ -68,27 +88,31 @@ public class MvpCreateAction extends AnAction {
      * 生成类文件
      */
     private void createClassFiles() {
-        createClassFile(CodeType.Activity);
-        createClassFile(CodeType.Fragment);
         createClassFile(CodeType.Contract);
         createClassFile(CodeType.Presenter);
-        createBaseClassFile(CodeType.BaseView);
-        createBaseClassFile(CodeType.BasePresenter);
-        createBaseClassFile(CodeType.MvpBaseActivity);
-        createBaseClassFile(CodeType.MvpBaseFragment);
+        if (mIsActivity) {
+            createClassFile(CodeType.Activity);
+        } else {
+            createClassFile(CodeType.Fragment);
+        }
+//        createBaseClassFile(CodeType.BaseView);
+//        createBaseClassFile(CodeType.BasePresenter);
+//        createBaseClassFile(CodeType.MvpBaseActivity);
+//        createBaseClassFile(CodeType.MvpBaseFragment);
     }
 
     /**
      * 生成base类
+     *
      * @param codeType
      */
     private void createBaseClassFile(CodeType codeType) {
         String fileName = "";
         String content = "";
         String basePath = getAppPath() + "base/";
-        switch (codeType){
+        switch (codeType) {
             case BaseView:
-                if (!new File(basePath + "BaseView.java").exists()){
+                if (!new File(basePath + "BaseView.java").exists()) {
                     fileName = "TemplateBaseView.txt";
                     content = ReadTemplateFile(fileName);
                     content = dealTemplateContent(content);
@@ -96,7 +120,7 @@ public class MvpCreateAction extends AnAction {
                 }
                 break;
             case BasePresenter:
-                if (!new File(basePath + "BasePresenter.java").exists()){
+                if (!new File(basePath + "BasePresenter.java").exists()) {
                     fileName = "TemplateBasePresenter.txt";
                     content = ReadTemplateFile(fileName);
                     content = dealTemplateContent(content);
@@ -104,7 +128,7 @@ public class MvpCreateAction extends AnAction {
                 }
                 break;
             case MvpBaseActivity:
-                if (!new File(basePath + "MvpBaseActivity.java").exists()){
+                if (!new File(basePath + "MvpBaseActivity.java").exists()) {
                     fileName = "TemplateMvpBaseActivity.txt";
                     content = ReadTemplateFile(fileName);
                     content = dealTemplateContent(content);
@@ -112,7 +136,7 @@ public class MvpCreateAction extends AnAction {
                 }
                 break;
             case MvpBaseFragment:
-                if (!new File(basePath + "MvpBaseFragment.java").exists()){
+                if (!new File(basePath + "MvpBaseFragment.java").exists()) {
                     fileName = "TemplateMvpBaseFragment.txt";
                     content = ReadTemplateFile(fileName);
                     content = dealTemplateContent(content);
@@ -124,13 +148,14 @@ public class MvpCreateAction extends AnAction {
 
     /**
      * 生成mvp框架代码
+     *
      * @param codeType
      */
     private void createClassFile(CodeType codeType) {
         String fileName = "";
         String content = "";
         String appPath = getAppPath();
-        switch (codeType){
+        switch (codeType) {
             case Activity:
                 fileName = "TemplateActivity.txt";
                 content = ReadTemplateFile(fileName);
@@ -160,34 +185,48 @@ public class MvpCreateAction extends AnAction {
 
     /**
      * 获取包名文件路径
+     *
      * @return
      */
-    private String getAppPath(){
-        String packagePath = packageName.replace(".", "/");
-        String appPath = project.getBasePath() + "/App/src/main/java/" + packagePath + "/";
-        return appPath;
+    private String getAppPath() {
+//        String packagePath = packageName.replace(".", "/");
+//        String appPath = project.getBasePath() + "/App/src/main/java/" + packagePath + "/";
+//        return appPath;
+        return currentDirPath + "/";
     }
 
     /**
      * 替换模板中字符
+     *
      * @param content
      * @return
      */
     private String dealTemplateContent(String content) {
         content = content.replace("$name", mModuleName);
-        if (content.contains("$packagename")){
-            content = content.replace("$packagename", packageName + "." + mModuleName.toLowerCase());
+        if (content.contains("$packagename")) {
+            content = content.replace("$packagename", getCurrentPackage() + "." + mModuleName.toLowerCase());
         }
-        if (content.contains("$basepackagename")){
-            content = content.replace("$basepackagename", packageName + ".base");
+        if (content.contains("$basepackagename")) {
+            content = content.replace("$basepackagename", getCurrentPackage() + ".base");
+        }
+        if (content.contains("$description")) {
+            content = content.replace("$description",
+                    mModuleName + " mvp module , generate by plugin");
         }
         content = content.replace("$author", mAuthor);
         content = content.replace("$date", getDate());
         return content;
     }
 
+    //当前目录的包名
+    private String getCurrentPackage() {
+        return currentDirPath.substring(currentDirPath.indexOf("java") + 5,
+                currentDirPath.length()).replace("/", ".");
+    }
+
     /**
      * 获取当前时间
+     *
      * @return
      */
     public String getDate() {
@@ -200,6 +239,7 @@ public class MvpCreateAction extends AnAction {
 
     /**
      * 读取模板文件中的字符内容
+     *
      * @param fileName 模板文件名
      * @return
      */
@@ -221,12 +261,12 @@ public class MvpCreateAction extends AnAction {
         byte[] buffer = new byte[1024];
         int len = -1;
         try {
-            while ((len = inputStream.read(buffer)) != -1){
+            while ((len = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, len);
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             outputStream.close();
             inputStream.close();
         }
@@ -237,14 +277,15 @@ public class MvpCreateAction extends AnAction {
 
     /**
      * 生成
-     * @param content 类中的内容
+     *
+     * @param content   类中的内容
      * @param classPath 类文件路径
      * @param className 类文件名称
      */
     private void writeToFile(String content, String classPath, String className) {
         try {
             File floder = new File(classPath);
-            if (!floder.exists()){
+            if (!floder.exists()) {
                 floder.mkdirs();
             }
 
@@ -265,6 +306,7 @@ public class MvpCreateAction extends AnAction {
 
     /**
      * 从AndroidManifest.xml文件中获取当前app的包名
+     *
      * @return
      */
     private String getPackageName() {
@@ -275,7 +317,7 @@ public class MvpCreateAction extends AnAction {
             Document doc = db.parse(project.getBasePath() + "/App/src/main/AndroidManifest.xml");
 
             NodeList nodeList = doc.getElementsByTagName("manifest");
-            for (int i = 0; i < nodeList.getLength(); i++){
+            for (int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
                 Element element = (Element) node;
                 package_name = element.getAttribute("package");

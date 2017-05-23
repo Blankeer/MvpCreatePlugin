@@ -1,3 +1,5 @@
+package Template;
+
 import javax.swing.*;
 import java.awt.event.*;
 
@@ -7,6 +9,8 @@ public class MyDialog extends JDialog {
     private JButton buttonCancel;
     private JTextField textField1;
     private JTextField textField2;
+    private JRadioButton activityRadioButton;
+    private JRadioButton fragmentRadioButton;
 
     private DialogCallBack mCallBack;
 
@@ -48,8 +52,10 @@ public class MyDialog extends JDialog {
 
     private void onOK() {
         // add your code here
-        if (null != mCallBack){
-            mCallBack.ok(textField1.getText().trim(), textField2.getText().trim());
+        if (null != mCallBack) {
+            mCallBack.ok(textField1.getText().trim(),
+                    textField2.getText().trim(),
+                    activityRadioButton.isSelected());
         }
         dispose();
     }
@@ -59,20 +65,27 @@ public class MyDialog extends JDialog {
         dispose();
     }
 
-//    public static void main(String[] args) {
-//        MyDialog dialog = new MyDialog(new DialogCallBack() {
-//            @Override
-//            public void ok(String author, String moduleName) {
-//                System.out.print("成功啦！！！！！！ " + "author:" + author + "moduleName" + moduleName);
-//            }
-//        });
-//        dialog.pack();
-//        dialog.setVisible(true);
-//        System.exit(0);
-//    }
+    public static void main(String[] args) {
+        MyDialog dialog = new MyDialog(new DialogCallBack() {
+            @Override
+            public void ok(String author, String moduleName, boolean isActivity) {
+                System.out.print("成功啦！！！！！！ " +
+                        "author:" + author +
+                        ",moduleName:" + moduleName
+                        + ",isActivity:" + isActivity);
+            }
+        });
+        dialog.pack();
+        dialog.setVisible(true);
+        System.exit(0);
+    }
 
-    public interface DialogCallBack{
-        void ok(String author, String moduleName);
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
+    }
+
+    public interface DialogCallBack {
+        void ok(String author, String moduleName, boolean isActivity);
     }
 
 }

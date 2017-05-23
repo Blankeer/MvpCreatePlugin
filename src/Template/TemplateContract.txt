@@ -1,8 +1,5 @@
 package $packagename;
 
-import $basepackagename.BasePresenter;
-import $basepackagename.BaseView;
-
 /**
  * @author $author
  * @Package $packagename
@@ -15,7 +12,7 @@ public interface $nameContract {
 
     }
 
-    interface Presenter extends BasePresenter {
+    abstract class Presenter extends BasePresenter<View> {
 
     }
 }

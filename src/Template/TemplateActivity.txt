@@ -1,7 +1,6 @@
 package $packagename;
 
-import $basepackagename.MvpBaseActivity;
-import $basepackagename.MvpBaseFragment;
+import android.os.Bundle;
 
 /**
  * @author $author
@@ -9,29 +8,31 @@ import $basepackagename.MvpBaseFragment;
  * @Description: $description
  * @date $date
  */
-public class $nameActivity extends MvpBaseActivity{
-
-    private $nameFragment m$nameFragment;
+public class $nameActivity extends BaseActivity
+        implements $nameContract.View{
+    private $nameContract.Presenter mPresenter;
 
     @Override
-    protected int getActivityLayoutId() {
-        return 0;
+    public int getLayout() {
+        return ;
     }
 
     @Override
-    protected int getFragmentContentId() {
-        return 0;
+    public void initData(Bundle savedInstanceState) {
+
     }
 
     @Override
-    protected MvpBaseFragment getFirstFragment() {
-        m$nameFragment = $nameFragment.getInstance();
-        return m$nameFragment;
+    public void initView(Bundle savedInstanceState) {
+
     }
 
     @Override
-    protected void initPresenterInstance() {
-        new $namePresenter($nameActivity.this, m$nameFragment);
+    public $nameContract.Presenter getPresenter() {
+        if (mPresenter == null) {
+            mPresenter = new $namePresenter();
+        }
+        return mPresenter;
     }
 
 }
